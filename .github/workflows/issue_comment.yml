@@ -10,11 +10,13 @@ permissions:
   pull-requests: write
 
 jobs:
-  extract_sites:
+  extract_data:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy-preview')
     outputs:
       site_ids: ${{ steps.extract_site_ids.outputs.site_ids }}
+      commit_sha: ${{ steps.extract_pr_details.outputs.commit_sha }}
+
     steps:
       - name: Extract Site IDs from Comment
         id: extract_site_ids
@@ -23,21 +25,27 @@ jobs:
           JSON_SITE_IDS=$(echo "[\"$(echo $SITE_IDS | sed 's/,/\",\"/g')\"]")
           echo $JSON_SITE_IDS
           echo "site_ids=${JSON_SITE_IDS}" >> $GITHUB_OUTPUT
-        outputs:
-          site_ids: ${{ steps.extract_site_ids.outputs.site_ids }}
-
+      - name: Extract Pull Request Details
+        id: extract_pr_details
+        env:
+          PULL_REQUEST_URL: ${{ github.event.issue.pull_request.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_DETAILS=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" $PULL_REQUEST_URL)
+          COMMIT_SHA=$(echo "$PR_DETAILS" | jq -r '.head.sha')
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
   deploy_sites:
-    needs: extract_sites
+    needs: extract_data
     if: success()
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        site_id: ${{ fromJson(needs.extract_sites.outputs.site_ids) }}
+        site_id: ${{ fromJson(needs.extract_data.outputs.site_ids) }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.issue.pull_request.head.ref }}
+          ref: ${{ needs.extract_data.outputs.commit_sha }}
       # - uses: actions/setup-node@v2
       #   with:
       #     node-version: 20
