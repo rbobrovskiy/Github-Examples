@@ -60,6 +60,7 @@ jobs:
         run: |
           echo "Deploying site now ${{ matrix.site_id }}"
           cat text.txt
+          echo "Pull Request Object: ${{ toJson(github.event.pull_request) }}"
           # npm run vercel:link -- --scope tapestry-sites --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes --project ${{ matrix.org_id }}
           # npm run vercel:env:pull -- --environment=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
           # npm run vercel:build -- --target=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
