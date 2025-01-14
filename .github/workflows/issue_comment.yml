@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        site_id: ${{ fromJson(needs.extract_sites.outputs.site_ids) | split(',') }}
+        site_id: ${{ fromJson(needs.extract_sites.outputs.site_ids) }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
