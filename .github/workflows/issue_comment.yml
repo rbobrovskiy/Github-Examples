@@ -18,7 +18,8 @@ jobs:
         id: extract_site_ids
         run: |
           SITE_IDS=$(echo "${{ github.event.comment.body }}" | awk '{print $2}')
-          echo "site_ids=${SITE_IDS}" >> $GITHUB_OUTPUT
+          JSON_SITE_IDS=$(echo "[\"$(echo $SITE_IDS | sed 's/,/\",\"/g')\"]")
+          echo "site_ids=${JSON_SITE_IDS}" >> $GITHUB_OUTPUT
 
   deploy_sites:
     needs: extract_sites
