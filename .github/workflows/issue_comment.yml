@@ -12,7 +12,7 @@ permissions:
 jobs:
   extract_sites:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.comment.body, '/deploy-preview')
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy-preview')
     outputs:
       site_ids: ${{ steps.extract_site_ids.outputs.site_ids }}
     steps:
