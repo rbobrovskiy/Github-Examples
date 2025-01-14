@@ -12,7 +12,7 @@ permissions:
 jobs:
   extract_sites:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.comment.body, '/deploy-preview')
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy-preview')
     outputs:
       site_ids: ${{ steps.extract_site_ids.outputs.site_ids }}
     steps:
@@ -58,7 +58,8 @@ jobs:
         env:
           SFCC_BACKEND_DOMAIN_US: ${{ env.SFCC_BACKEND_DOMAIN_US }}
         run: |
-          echo "Deploying site ${{ matrix.site_id }}"
+          echo "Deploying site now ${{ matrix.site_id }}"
+          cat text.txt
           # npm run vercel:link -- --scope tapestry-sites --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes --project ${{ matrix.org_id }}
           # npm run vercel:env:pull -- --environment=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
           # npm run vercel:build -- --target=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
