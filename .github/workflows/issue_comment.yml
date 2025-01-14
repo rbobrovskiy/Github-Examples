@@ -21,6 +21,8 @@ jobs:
           JSON_SITE_IDS=$(echo "[\"$(echo $SITE_IDS | sed 's/,/\",\"/g')\"]")
           echo $JSON_SITE_IDS
           echo "site_ids=${JSON_SITE_IDS}" >> $GITHUB_OUTPUT
+        outputs:
+          site_ids: ${{ steps.extract_site_ids.outputs.site_ids }}
 
   deploy_sites:
     needs: extract_sites
