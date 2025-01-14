@@ -1,0 +1,59 @@
+name: Deploy Vercel Preview
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  extract_sites:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.comment.body, '/deploy-preview')
+    steps:
+      - name: Extract Site IDs from Comment
+        id: extract_site_ids
+        run: |
+          SITE_IDS=$(echo "${{ github.event.comment.body }}" | awk '{print $2}')
+          echo "site_ids=${SITE_IDS}" >> $GITHUB_OUTPUT
+
+  deploy_sites:
+    needs: extract_sites
+    if: success()
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site_id: ${{ fromJson(needs.extract_sites.outputs.site_ids) | split(',') }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      # - uses: actions/setup-node@v2
+      #   with:
+      #     node-version: 20
+      #     registry-url: 'https://npm.pkg.github.com'
+      # - name: Cache node modules
+      #   uses: actions/cache@v1
+      #   env:
+      #     cache-name: cache-node-modules
+      #   with:
+      #     path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-${{ env.cache-name }}-
+      #       ${{ runner.os }}-build-
+      #       ${{ runner.os }}-
+      # - run: |
+      #     echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+      #     npm ci
+      - name: Vercel Build & Deploy to ${{ matrix.site_id }}
+        env:
+          SFCC_BACKEND_DOMAIN_US: ${{ env.SFCC_BACKEND_DOMAIN_US }}
+        run: |
+          echo "Deploying site now ${{ matrix.site_id }}"
+          # npm run vercel:link -- --scope tapestry-sites --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes --project ${{ matrix.org_id }}
+          # npm run vercel:env:pull -- --environment=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
+          # npm run vercel:build -- --target=preview --token ${{ secrets.VERCEL_AUTH_TOKEN }} --yes
+          # npm run vercel:deploy -- --token ${{ secrets.VERCEL_AUTH_TOKEN }} --prebuilt --target=preview
